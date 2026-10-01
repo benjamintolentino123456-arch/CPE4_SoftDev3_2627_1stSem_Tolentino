@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="CPE4_SoftDev3_2627_1stSem_Tolentino.Shared/CPE4_SoftDev3_2627_1stSem_Tolentino.Shared.csproj" />
+  <Project Path="CPE4_SoftDev3_2627_1stSem_Tolentino.Web/CPE4_SoftDev3_2627_1stSem_Tolentino.Web.csproj" />
+  <Project Path="CPE4_SoftDev3_2627_1stSem_Tolentino/CPE4_SoftDev3_2627_1stSem_Tolentino.csproj">
+    <Deploy Solution="Debug|*" />
+  </Project>
+</Solution>

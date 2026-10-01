@@ -1,0 +1,51 @@
+﻿@page "/register"
+@using CPE4_SoftDev3_2627_1stSem_Tolentino.Shared.Datas
+
+<div class="vh-100 d-flex justify-content-center align-items-center container">
+	<div class="card w-100 p-4 shadow-sm" style="max-width: 400px; border-radius: 12px;">
+		<EditForm Model="_registerModel" @ref="_editForm">
+			<DataAnnotationsValidator />
+
+			<h1 class="mt-2 text-center text-primary fw-bold h3">BMTolentino Blazor App</h1>
+			<p class="mt-2 text-center">Please register a new account</p>
+
+			<div class="mb-3">
+				<label class="form-label">Name</label>
+				<InputText class="form-control" @bind-Value="_registerModel.Name" placeholder="Enter name" />
+				<ValidationMessage For="() => _registerModel.Name" class="text-danger" />
+			</div>
+
+			<div class="mb-3">
+				<label class="form-label">Username</label>
+				<InputText class="form-control" @bind-Value="_registerModel.Username" placeholder="Enter username" />
+				<ValidationMessage For="() => _registerModel.Username" class="text-danger" />
+			</div>
+
+			<div class="mb-3">
+				<label class="form-label">Email</label>
+				<InputText class="form-control" @bind-Value="_registerModel.Email" placeholder="Enter email" />
+				<ValidationMessage For="() => _registerModel.Email" class="text-danger" />
+			</div>
+
+			<div class="mb-3">
+				<label class="form-label">Password</label>
+				<InputText class="form-control" @bind-Value="_registerModel.Password" placeholder="Enter password" />
+				<ValidationMessage For="() => _registerModel.Password" class="text-danger" />
+			</div>
+
+			<div class="mt-4 text-center">
+				<div class="text-muted small mb-0">
+					<button class="btn btn-primary fw-semibold w-100 py-2" type="submit">Register</button>
+					<hr />
+					<NavLink class="text-decoration-none" href="login">Existing account? Login.</NavLink>
+				</div>
+			</div>
+
+		</EditForm>
+	</div>
+</div>
+
+@code {
+	private RegisterModel _registerModel = new();
+	private EditForm _editForm;
+}
