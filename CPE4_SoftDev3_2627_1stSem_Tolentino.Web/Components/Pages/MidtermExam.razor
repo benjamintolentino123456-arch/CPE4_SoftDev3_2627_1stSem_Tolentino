@@ -1,0 +1,204 @@
+@page "/midterm-exam"
+@using System.ComponentModel.DataAnnotations
+@using CPE4_SoftDev3_2627_1stSem_Tolentino.Shared.Datas
+@using CPE4_SoftDev3_2627_1stSem_Tolentino.Shared.Services
+@inject IEventService EventService
+
+<div class="vh-100 d-flex justify-content-center align-items-center container">
+	<div class="card w-100 p-4 shadow-sm" style="max-width: 500px; border-radius: 12px;">
+		<h1 class="mt-2 text-center text-primary fw-bold h3">JGRefran Midterm Exam</h1>
+		<p class="mt-2 text-center">Create a new event record</p>
+
+		<EditForm Model="_examModel" OnValidSubmit="SaveEventAsync">
+			<DataAnnotationsValidator />
+
+			<div class="mb-3">
+				<label class="form-label">Title</label>
+				<InputText class="form-control" @bind-Value="_examModel.Title" placeholder="Enter Title" />
+				<ValidationMessage For="@(() => _examModel.Title)" class="text-danger" />
+			</div>
+
+			<div class="mb-3">
+				<label class="form-label">Date</label>
+				<InputDate class="form-control" @bind-Value="_examModel.Date" />
+				<ValidationMessage For="@(() => _examModel.Date)" class="text-danger" />
+			</div>
+
+			<div class="row">
+				<div class="col-md-6 mb-3">
+					<label class="form-label">Time</label>
+					<InputText class="form-control" @bind-Value="_examModel.TimeText" placeholder="Enter Time (HH:MM)" />
+					<ValidationMessage For="@(() => _examModel.TimeText)" class="text-danger" />
+				</div>
+				<div class="col-md-6 mb-3">
+					<label class="form-label">Venue</label>
+					<InputText class="form-control" @bind-Value="_examModel.Venue" placeholder="Enter Venue" />
+					<ValidationMessage For="@(() => _examModel.Venue)" class="text-danger" />
+				</div>
+			</div>
+
+			<div class="mb-3">
+				<label class="form-label">Details</label>
+				<InputTextArea class="form-control" @bind-Value="_examModel.Details" placeholder="Enter Details..." rows="5" />
+				<ValidationMessage For="@(() => _examModel.Details)" class="text-danger" />
+			</div>
+
+			@if (!string.IsNullOrEmpty(_errorMessage))
+			{
+				<div class="alert alert-danger d-flex justify-content-between align-items-center p-3 mb-3" role="alert">
+					<span>@_errorMessage</span>
+					<button type="button" class="btn-close" aria-label="Close" @onclick="() => _errorMessage = null"></button>
+				</div>
+			}
+
+			@if (!string.IsNullOrEmpty(_successMessage))
+			{
+				<div class="alert alert-success d-flex justify-content-between align-items-center p-3 mb-3" role="alert">
+					<span>@_successMessage</span>
+					<button type="button" class="btn-close" aria-label="Close" @onclick="() => _successMessage = null"></button>
+				</div>
+			}
+
+			<div class="mt-4 text-center">
+				<button class="btn btn-primary fw-semibold w-100 py-2" type="submit">Save Event</button>
+				<br />
+				<br />
+				<NavLink class="text-decoration-none small" href="login">Back to Event List.</NavLink>
+			</div>
+
+		</EditForm>
+	</div>
+</div>
+
+@code {
+	private MidtermExamModel _examModel = new();
+	private string _errorMessage = "";
+	private string _successMessage = "";
+
+	private async Task SaveEventAsync()
+	{
+		_errorMessage = "";
+		_successMessage = "";
+
+		// Validate time format (only if not empty, Required validation handles empty)
+		if (!string.IsNullOrEmpty(_examModel.TimeText))
+		{
+			if (!TryParseTime(_examModel.TimeText, out _))
+			{
+				_errorMessage = "Invalid time format. Use HH:MM (14:30) or HH:MM AM/PM (02:30 PM)";
+				return;
+			}
+		}
+		else
+		{
+			// Time is empty but Required should catch it, don't proceed
+			return;
+		}
+
+		// Parse time from text input
+		if (!TryParseTime(_examModel.TimeText, out var timeSpan))
+		{
+			return;
+		}
+
+		try
+		{
+			var eventModel = new EventModel
+			{
+				Title = _examModel.Title,
+				Date = _examModel.Date.HasValue ? _examModel.Date.Value : DateTime.Now,
+				Time = timeSpan,
+				Venue = _examModel.Venue,
+				Details = _examModel.Details
+			};
+
+			var result = await EventService.CreateEventAsync(eventModel);
+
+			if (result.IsSuccess)
+			{
+				_successMessage = "Event saved successfully!";
+				_examModel = new();
+				await Task.Delay(2000);
+				_successMessage = "";
+			}
+			else
+			{
+				_errorMessage = result.Error ?? "Failed to save event";
+			}
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = $"Error: {ex.Message}";
+		}
+	}
+
+	private bool TryParseTime(string timeText, out TimeSpan timeSpan)
+	{
+		timeSpan = TimeSpan.Zero;
+
+		if (string.IsNullOrEmpty(timeText))
+			return false;
+
+		timeText = timeText.Trim().ToUpper();
+
+		// Try 24-hour format (14:30)
+		if (TimeSpan.TryParse(timeText, out var result))
+		{
+			timeSpan = result;
+			return true;
+		}
+
+		// Try 12-hour format (02:30 PM)
+		if (timeText.Contains("AM") || timeText.Contains("PM"))
+		{
+			var parts = timeText.Replace("AM", "").Replace("PM", "").Trim().Split(':');
+			if (parts.Length != 2)
+				return false;
+
+			if (!int.TryParse(parts[0], out var hour) || !int.TryParse(parts[1], out var minute))
+				return false;
+
+			if (hour < 1 || hour > 12 || minute < 0 || minute > 59)
+				return false;
+
+			// Convert to 24-hour
+			if (timeText.Contains("PM") && hour != 12)
+				hour += 12;
+			else if (timeText.Contains("AM") && hour == 12)
+				hour = 0;
+
+			timeSpan = new TimeSpan(hour, minute, 0);
+			return true;
+		}
+
+		return false;
+	}
+
+	public class MidtermExamModel
+	{
+		[Required(ErrorMessage = "Title is required")]
+		public string Title { get; set; } = "";
+
+		[Required(ErrorMessage = "Date is required")]
+		public DateTime? Date { get; set; } = null;
+
+		[Required(ErrorMessage = "Time is required")]
+		public string TimeText { get; set; } = "";
+
+		[Required(ErrorMessage = "Venue is required")]
+		public string Venue { get; set; } = "";
+
+		[Required(ErrorMessage = "Details is required")]
+		public string Details { get; set; } = "";
+	}
+}
+
+<style>
+	.form-control.error {
+		border-color: #dc3545;
+	}
+
+	.form-control:invalid {
+		border-color: #dc3545;
+	}
+</style>

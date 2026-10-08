@@ -58,3 +58,17 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+/* Alert styling for error messages */
+.alert-danger {
+    background-color: #ff5252;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.alert-danger .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 1;
+}

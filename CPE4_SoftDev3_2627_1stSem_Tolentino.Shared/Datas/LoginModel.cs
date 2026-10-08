@@ -12,6 +12,6 @@ namespace CPE4_SoftDev3_2627_1stSem_Tolentino.Shared.Datas
 
         [Required(ErrorMessage = "The Password field is required")]
         public string Password { get; set; }
-
+        public object Email { get; set; }
     }
 }

@@ -2,7 +2,9 @@ using CPE4_SoftDev3_2627_1stSem_Tolentino.Shared.Services;
 using CPE4_SoftDev3_2627_1stSem_Tolentino.Web.Components;
 using CPE4_SoftDev3_2627_1stSem_Tolentino.Web.Data.Entities;
 using CPE4_SoftDev3_2627_1stSem_Tolentino.Web.Services;
+using CPE4_SoftDev3_2627_1stSem_Tolentino.Web.Data; 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 using System.Runtime.InteropServices;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,7 +22,14 @@ builder.Services.AddDbContextFactory<DataContext>(options =>
     options.UseSqlServer(connectionString);
 });
 
+builder.Services.AddTransient<IPasswordHasher<User>, PasswordHasher<User>>();
+
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IEventService, EventService>();
+
 var app = builder.Build();
+
+AutoMigrateDatabase(app.Services);
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -42,3 +51,25 @@ app.MapRazorComponents<App>()
         typeof(CPE4_SoftDev3_2627_1stSem_Tolentino.Shared._Imports).Assembly);
 
 app.Run();
+
+void AutoMigrateDatabase(IServiceProvider serviceProvider)
+{
+    using var scope = serviceProvider.CreateScope();
+    var contextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<DataContext>>();
+    using var context = contextFactory.CreateDbContext();
+
+    try
+    {
+        // Drop and recreate database to ensure Events table exists
+        context.Database.EnsureDeleted();
+        context.Database.EnsureCreated();
+
+        // Apply migrations
+        if(context.Database.GetPendingMigrations().Any()) 
+            context.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Database migration error: {ex.Message}");
+    }
+}

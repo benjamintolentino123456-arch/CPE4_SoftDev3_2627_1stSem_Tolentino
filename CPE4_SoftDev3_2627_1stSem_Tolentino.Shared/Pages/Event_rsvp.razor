@@ -1,0 +1,107 @@
+@page "/event/midterm-exam"
+@using CPE4_SoftDev3_2627_1stSem_Tolentino.Shared.Services
+@using CPE4_SoftDev3_2627_1stSem_Tolentino.Shared.Datas
+@inject NavigationManager NavigationManager
+@inject IEventService EventService
+
+<div class="vh-100 d-flex justify-content-center align-items-center container">
+	<div class="card w-100 p-4 shadow-sm" style="max-width: 500px; border-radius: 12px;">
+		<EditForm Model="_eventModel" @ref="_editForm" OnValidSubmit="CreateEventAsync">
+			<DataAnnotationsValidator />
+
+			<h2 class="mt-2 text-center text-primary fw-bold">BMTolentino Midterm Exam</h2>
+			<p class="mt-2 text-center">Create a new event record</p>
+
+			<div class="mb-3">
+				<label class="form-label">Title</label>
+				<InputText class="form-control" @bind-Value="_eventModel.Title" placeholder="Enter Title" />
+				<ValidationMessage For="() => _eventModel.Title" class="text-danger" />
+			</div>
+
+			<div class="mb-3">
+				<label class="form-label">Date</label>
+				<InputDate class="form-control" @bind-Value="_eventModel.Date" />
+				<ValidationMessage For="() => _eventModel.Date" class="text-danger" />
+			</div>
+
+			<div class="row">
+				<div class="col-md-6">
+					<div class="mb-3">
+						<label class="form-label">Time</label>
+						<InputText class="form-control" @bind-Value="_timeString" placeholder="Enter Time (HH:MM)" />
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="mb-3">
+						<label class="form-label">Venue</label>
+						<InputText class="form-control" @bind-Value="_eventModel.Venue" placeholder="Enter Venue" />
+						<ValidationMessage For="() => _eventModel.Venue" class="text-danger" />
+					</div>
+				</div>
+			</div>
+
+			<div class="mb-3">
+				<label class="form-label">Details</label>
+				<InputTextArea class="form-control" @bind-Value="_eventModel.Details" placeholder="Enter Details..." rows="4" />
+				<ValidationMessage For="() => _eventModel.Details" class="text-danger" />
+			</div>
+
+			@if (!string.IsNullOrEmpty(_errorMessage))
+			{
+				<div class="alert alert-danger d-flex justify-content-between align-items-center p-3 mb-3" role="alert">
+					<span>@_errorMessage</span>
+					<button type="button" class="btn-close" aria-label="Close" @onclick="() => _errorMessage = null"></button>
+				</div>
+			}
+
+			<div class="mt-4 text-center">
+				<button class="btn btn-primary fw-semibold w-100 py-2" type="submit">Save Event</button>
+				<hr />
+				<NavLink class="text-decoration-none" href="login">Back to Event List</NavLink>
+			</div>
+
+		</EditForm>
+	</div>
+</div>
+
+@code {
+	private EventModel _eventModel = new();
+	private string? _errorMessage;
+	private EditForm _editForm;
+	private string _timeString = "";
+
+	private async Task CreateEventAsync()
+	{
+		_errorMessage = null;
+
+		// Parse time string to TimeSpan
+		if (!string.IsNullOrEmpty(_timeString))
+		{
+			if (TimeSpan.TryParse(_timeString, out var time))
+			{
+				_eventModel.Time = time;
+			}
+			else
+			{
+				_errorMessage = "Invalid time format. Please use HH:MM format.";
+				return;
+			}
+		}
+		else
+		{
+			_errorMessage = "Time is required.";
+			return;
+		}
+
+		// Call EventService to save event
+		var result = await EventService.CreateEventAsync(_eventModel);
+
+		if (!result.IsSuccess)
+		{
+			_errorMessage = result.Error;
+			return;
+		}
+
+		NavigationManager.NavigateTo("/login");
+	}
+}
