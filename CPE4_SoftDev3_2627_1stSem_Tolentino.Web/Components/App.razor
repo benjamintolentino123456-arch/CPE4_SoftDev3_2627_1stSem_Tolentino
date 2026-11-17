@@ -11,13 +11,21 @@
     <link rel="stylesheet" href="CPE4_SoftDev3_2627_1stSem_Tolentino.Web.styles.css" />
     <ImportMap />
     <link rel="icon" type="image/png" href="_content/CPE4_SoftDev3_2627_1stSem_Tolentino.Shared/favicon.png" />
-    <HeadOutlet @rendermode="InteractiveServer" />
+    <HeadOutlet @rendermode="DynamicRenderMode" />
 </head>
 
 <body>
-    <Routes @rendermode="InteractiveServer" />
+    <Routes @rendermode="DynamicRenderMode" />
     <ReconnectModal />
     <script src="@Assets["_framework/blazor.web.js"]"></script>
 </body>
+
+@code {
+    [CascadingParameter]
+    public HttpContext HttpContext { get; set; } = default!;
+
+    private IComponentRenderMode? DynamicRenderMode =>
+        HttpContext.AcceptsInteractiveRouting() ? InteractiveServer : null;
+}
 
 </html>

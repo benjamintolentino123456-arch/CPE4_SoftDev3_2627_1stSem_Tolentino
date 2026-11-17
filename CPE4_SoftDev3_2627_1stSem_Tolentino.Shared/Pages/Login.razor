@@ -1,9 +1,15 @@
 ﻿@page "/login"
+@attribute [ExcludeFromInteractiveRouting]
 @using CPE4_SoftDev3_2627_1stSem_Tolentino.Shared.Datas
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+
+
 
 <div class="vh-100 d-flex justify-content-center align-items-center container">
 	<div class="card w-100 p-4 shadow-sm" style="max-width: 400px; border-radius: 12px;">
-		<EditForm Model="_loginModel" @ref="_editForm">
+        <EditForm Model="LoginModel" @ref="_editForm" OnValidSubmit="LoginAsync" Formname="login-form">
+           
 			<DataAnnotationsValidator />
 
 			<h1 class="mt-2 text-center text-primary fw-bold h3">BMTolentino Blazor App</h1>
@@ -11,16 +17,26 @@
 
 			<div class="mb-3">
 				<label class="form-label">Username</label>
-				<InputText class="form-control" @bind-Value="_loginModel.Username" placeholder="Enter username" />
-				<ValidationMessage For="() => _loginModel.Username" class="text-danger" />
+				<InputText class="form-control" @bind-Value="LoginModel.Username" placeholder="Enter username" />
+				<ValidationMessage For="() => LoginModel.Username" class="text-danger" />
 			</div>
 
 			<div class="mb-3">
 				<label class="form-label">Password</label>
-				<InputText class="form-control" @bind-Value="_loginModel.Password" placeholder="Enter password" />
-				<ValidationMessage For="() => _loginModel.Password" class="text-danger" />
+				<InputText class="form-control" type=password @bind-Value="LoginModel.Password" placeholder="Enter password" />
+				<ValidationMessage For="() => LoginModel.Password" class="text-danger" />
 			</div>
+			
+			@if (_errorMessage is not null)
 
+			{
+
+				<div class="alert alert-danger alert-dismissible fade show" role="alert" id="err">
+					@_errorMessage
+
+					<button type="button" class="btn-close" aria-label="Close" onclick="document.getElementById('error-message').remove()"></button>
+				</div>
+			}
 			<div class="mt-4 text-center">
 				<div class="text-muted small mb-0">
 					<button class="btn btn-primary fw-semibold w-100 py-2" type="submit">Login</button>
@@ -30,12 +46,39 @@
 					<NavLink class="text-decoration-none" href="event/midterm-exam">BMTolentino Midterm Exam</NavLink>
 				</div>
 			</div>
-
 		</EditForm>
 	</div>
 </div>
 
 @code {
-	private LoginModel _loginModel = new();
-	private EditForm _editForm;
+	[SupplyParameterFromForm(FormName = "login-form")]
+	public LoginModel LoginModel { get; set; } = new();
+
+	private async Task LoginAsync()
+	{
+		_errorMessage = null;
+		var result = await AuthService.LoginAsync(LoginModel);
+
+		if (!result.IsSuccess)
+		{
+			_errorMessage = result.Error;
+			return; 
+		}
+
+		var loggedInUser = result.Data;
+		var playfromLoginResult = await AuthService.PlayFromLoginAsync(loggedInUser);
+
+		if (playfromLoginResult.IsSuccess)
+		{
+			// Add a small delay to allow the Blazor circuit to process the authentication state change
+			await Task.Delay(100);
+			NavigationManager.NavigateTo("/", replace: true);
+		}
+		else
+		{
+			_errorMessage = playfromLoginResult.Error;
+		}
+	}
+    private EditForm _editForm;
+    private string? _errorMessage;
 }

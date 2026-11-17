@@ -1,6 +1,13 @@
-<Router AppAssembly="typeof(Layout.MainLayout).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+<Router AppAssembly="typeof(Layout.MainLayout).Assembly"
+        AdditionalAssemblies="new[] {
+            typeof(CPE4_SoftDev3_2627_1stSem_Tolentino.Shared._Imports).Assembly }"
+        NotFoundPage="typeof(Pages.NotFound)">
     <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
+            <NotAuthorized>
+                <CPE4_SoftDev3_2627_1stSem_Tolentino.Shared.RedirectToLogin />
+            </NotAuthorized>
+        </AuthorizeRouteView>
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
 </Router>

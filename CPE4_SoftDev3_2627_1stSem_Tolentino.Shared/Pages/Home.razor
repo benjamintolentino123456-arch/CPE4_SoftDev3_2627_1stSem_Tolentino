@@ -3,16 +3,210 @@
 @inject IFormFactor FormFactor
 @inject NavigationManager NavigationManager
 
+@attribute [Authorize]
+
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+@* <div style="display: flex; height: 100vh;">
+    <!-- Left Sidebar -->
+    <div id="left-sidebar" style="position: fixed; left: 0; top: 0; width: 300px; height: 100vh; background-color: #6ba3d4; z-index: 1000; display: flex; align-items: flex-start; justify-content: flex-start; padding-top: 20px; padding-left: 20px;">
+        <span style="color: white; font-size: 16px; font-weight: bold;">LeftSidebar</span>
+    </div>
+    <!-- Main Content Area -->
+    <div id="main-content" style="margin-left: 300px; flex: 1; display: flex; flex-direction: column; height: 100vh; width: calc(100vw - 300px);">
+        <!-- Header -->
+        <div id="header" style="position: fixed; left: 300px; top: 0; right: 0; background-color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; min-height: 70px; z-index: 999; border-bottom: 1px solid #ddd;">
+            <h1 style="color: #333; font-size: 24px; font-weight: bold; margin: 0;">Blazing Notes</h1>
+            <div style="display: flex; gap: 30px; align-items: center;">
+                <a href="/about" style="color: #333; font-size: 14px; font-weight: 500; text-decoration: none; cursor: pointer;">About</a>
+                <span style="color: #666; font-size: 14px; font-weight: 500;">@_name</span>
+                <button style="background-color: #e74c3c; color: white; border: none; padding: 8px 20px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px;" type="button"@onclick="Logout">Logout</button>
+            </div>
+        </div>
 
-Welcome to your new app running on <em>@factor</em> using <em>@platform</em>.
+        <!-- Body Content -->
+        <div id="body" style="flex: 1; padding: 30px; margin-top: 70px; overflow-y: auto; background-color: white;">
+            <h2 style="color: #333; font-size: 18px; font-weight: bold; margin: 0;">NoteEditor</h2>
+        </div>
+    </div>
+</div> *@
+
+<div style="display:flex;height:100vh;">
+
+    <!-- LEFT SIDEBAR -->
+    <div id="left-sidebar"
+         style="
+        width:@(_isSidebarCollapsed ? "40px" : "250px");
+        background-color:#f0f0f0;
+        display:flex;
+        flex-direction:column;
+        border-right:1px solid #ddd;
+        overflow:hidden;
+        transition:width 0.3s ease;">
+
+        @if (_isSidebarCollapsed)
+        {
+            <!-- COLLAPSED SIDEBAR -->
+            <div style="
+                width:100%;
+                padding-top:15px;
+                display:flex;
+                justify-content:center;
+                align-items:flex-start;">
+
+                <!-- SIDEBAR TOGGLE BUTTON -->
+                <img src="_content/CPE4_SoftDev3_2627_1stSem_Tolentino.Shared/images/menu.svg"
+                     @onclick="ToggleSidebar"
+                     style="
+                width:20px;
+                height:20px;
+                cursor:pointer;" />
+            </div>
+        }
+        else
+        {
+            <!-- SIDEBAR HEADER -->
+            <div style="
+                padding:15px 20px;
+                border-bottom:1px solid #ddd;
+                display:flex;
+                justify-content:space-between;
+                align-items:center;">
+
+                <!-- APP TITLE -->
+                <h2 style="
+                    color:#333;
+                    font-size:22px;
+                    font-weight:bold;
+                    margin:0;">
+                    Notes
+                </h2>
+
+                <!-- SIDEBAR TOGGLE BUTTON -->
+                <img src="_content/CPE4_SoftDev3_2627_1stSem_Tolentino.Shared/images/menu.svg"
+                     @onclick="ToggleSidebar"
+                     style="
+                width:20px;
+                height:20px;
+                cursor:pointer;" />
+            </div>
+
+            <!-- SIDEBAR CONTENT -->
+            <div style="
+                flex:1;
+                padding:20px;
+                overflow-y:auto;">
+
+                <p style="
+                    color:#666;
+                    font-size:14px;
+                    margin:0;">
+                    LeftSidebar
+                </p>
+
+            </div>
+
+            <!-- USER SECTION -->
+            <div style="
+                padding:20px;
+                border-top:1px solid #ddd;
+                display:flex;
+                flex-direction:column;
+                align-items:center;
+                justify-content:center;
+                text-align:center;">
+
+                <!-- USERNAME -->
+                <p style="
+                    color:#198754;
+                    font-size:14px;
+                    margin:0 0 15px 0;
+                    font-weight:700;">
+                    @_name
+                </p>
+
+                <!-- LOGOUT BUTTON -->
+                <button type="button"
+                        @onclick="Logout"
+                        style="
+                    background-color:#e74c3c;
+                    color:white;
+                    border:none;
+                    padding:8px 16px;
+                    border-radius:4px;
+                    font-weight:bold;
+                    cursor:pointer;
+                    font-size:13px;
+                    width:80px;">
+                    Logout
+                </button>
+
+            </div>
+        }
+
+    </div>
+
+    <!-- MAIN CONTENT AREA -->
+    <div id="main-content"
+         style="
+        flex:1;
+        display:flex;
+        flex-direction:column;
+        height:100vh;">
+
+        <!-- PAGE HEADER -->
+        <div style="
+            background-color:#ffffff;
+            padding:15px 20px;">
+
+            <!-- PAGE TITLE -->
+            <h3 style="
+                margin:0;
+                color:#333;
+                font-size:16px;
+                font-weight:bold;">
+                NoteEditor
+            </h3>
+
+        </div>
+
+        <!-- PAGE BODY -->
+        <div id="body"
+             style="
+            flex:1;
+            padding:30px;
+            overflow-y:auto;
+            background-color:white;">
+        </div>
+
+    </div>
+
+</div>
+
+@* <h1>Hello, @_name!</h1>
+
+Welcome to your new app running on <em>@factor</em> using <em>@platform</em>. *@
 
 @code {
-	private string factor => FormFactor.GetFormFactor();
-	private string platform => FormFactor.GetPlatform();
 
-	protected override void OnInitialized() =>
-	NavigationManager.NavigateTo("login");
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthStateTask { get; set; }
+
+    private string _name = "No Identity";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateTask;
+        _name = authState.User.Identity?.Name ?? "No Identity";
+    }
+
+    private bool _isSidebarCollapsed = false;
+
+    private void ToggleSidebar()
+    {
+        _isSidebarCollapsed = !_isSidebarCollapsed;
+    }
+
+    private void Logout() =>
+        NavigationManager.NavigateTo("/logout", replace: true, forceLoad: true);
 }

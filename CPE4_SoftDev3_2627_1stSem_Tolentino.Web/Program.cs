@@ -6,6 +6,9 @@ using CPE4_SoftDev3_2627_1stSem_Tolentino.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using System.Runtime.InteropServices;
+using CPE4_SoftDev3_2627_1stSem_Tolentino.Web;
+using Microsoft.AspNetCore.Components.Server;
+using Microsoft.AspNetCore.Components.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +30,23 @@ builder.Services.AddTransient<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEventService, EventService>();
 
+
+builder.Services.AddAuthentication(WebConstants.WebAuthenticationScheme)
+    .AddCookie(WebConstants.WebAuthenticationScheme, options =>
+    {
+        options.Cookie.Name = WebConstants.WebAuthenticationScheme;
+        options.LoginPath = "/login";
+        options.LogoutPath = "/logout";
+        options.Cookie.HttpOnly = true;
+        options.SlidingExpiration = true;
+        options.ExpireTimeSpan = TimeSpan.FromDays(1);
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    });
+builder.Services.AddAuthorization();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<AuthenticationStateProvider, WebAuthStateProvider>();
+
 var app = builder.Build();
 
 AutoMigrateDatabase(app.Services);
@@ -41,6 +61,15 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
 
+// Add Permissions-Policy header to allow unload event
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("Permissions-Policy", "unload=*");
+    await next();
+});
+
+app.UseAuthentication().UseAuthorization();
+
 app.UseAntiforgery();
 
 app.MapStaticAssets();
@@ -52,7 +81,7 @@ app.MapRazorComponents<App>()
 
 app.Run();
 
-void AutoMigrateDatabase(IServiceProvider serviceProvider)
+static void AutoMigrateDatabase(IServiceProvider serviceProvider)
 {
     using var scope = serviceProvider.CreateScope();
     var contextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<DataContext>>();
@@ -60,12 +89,11 @@ void AutoMigrateDatabase(IServiceProvider serviceProvider)
 
     try
     {
-        // Drop and recreate database to ensure Events table exists
-        context.Database.EnsureDeleted();
+        // Create database if it doesn't exist, but don't delete existing data
         context.Database.EnsureCreated();
 
-        // Apply migrations
-        if(context.Database.GetPendingMigrations().Any()) 
+        // Apply pending migrations
+        if (context.Database.GetPendingMigrations().Any())
             context.Database.Migrate();
     }
     catch (Exception ex)
@@ -73,3 +101,4 @@ void AutoMigrateDatabase(IServiceProvider serviceProvider)
         Console.WriteLine($"Database migration error: {ex.Message}");
     }
 }
+
